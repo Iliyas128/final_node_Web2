@@ -1,4 +1,5 @@
 const collection = require('./config');
+const Blog = require('./blog');
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
@@ -59,6 +60,58 @@ app.post('/login', async (req, res) => {
         res.send("wrong details")
     };
 });
+
+app.post('/blogs', async (req, res) => {
+    const { title, author } = req.body;
+    try {
+        const blog = new Blog({ title: title, author: author });
+        await blog.save()
+        res.status(200).send("Success added");
+    } catch (err) {
+        res.status(500).send("Error while saving blog");
+    }
+})
+
+app.get('/blogs/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const blog = await Blog.findById(id)
+        res.status(200).send(blog);
+    } catch (err) {
+        res.status(400).send(err.message);
+    }
+})
+
+app.get('/blogs', async (req, res) => {
+    try {
+        const blogs = await Blog.find();
+        res.status(200).send(blogs);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+})
+
+app.delete('/blogs/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const blog = await Blog.findByIdAndDelete(id);
+        res.status(200).send(blog);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+})
+
+app.put('/blogs/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { title, author } = req.body;
+        const blog = await Blog.findByIdAndUpdate(id, { title, author });
+        res.status(200).send(blog);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+})
+
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');

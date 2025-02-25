@@ -3,10 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>Blog Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        .blog-container {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Welcome to Home Page</h1>
+<h1>Blog Manager</h1>
+
+<input type="text" id="title" placeholder="Blog Title">
+<input type="text" id="author" placeholder="Author">
+<button onclick="addBlog()">Add Blog</button>
+
+<h2>All Blogs</h2>
+<div id="blogs"></div>
+
+<script>
+    async function fetchBlogs() {
+        const response = await fetch('/blogs');
+        const blogs = await response.json();
+        const container = document.getElementById('blogs');
+        container.innerHTML = '';
+        blogs.forEach(blog => {
+            container.innerHTML += `
+                    <div class="blog-container">
+                        <h3>${blog.title}</h3>
+                        <p><strong>Author:</strong> ${blog.author}</p>
+                        <input type="text" id="title-${blog._id}" placeholder="New Title" value="${blog.title}">
+                        <input type="text" id="author-${blog._id}" placeholder="New Author" value="${blog.author}">
+                        <button onclick="updateBlog('${blog._id}')">Update</button>
+                        <button onclick="deleteBlog('${blog._id}')">Delete</button>
+                    </div>
+                `;
+        });
+    }
+
+    async function addBlog() {
+        const title = document.getElementById('title').value;
+        const author = document.getElementById('author').value;
+        await fetch('/blogs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, author })
+        });
+        fetchBlogs();
+    }
+
+    async function deleteBlog(id) {
+        await fetch(`/blogs/${id}`, { method: 'DELETE' });
+        fetchBlogs();
+    }
+
+    async function updateBlog(id) {
+        const title = document.getElementById(`title-${id}`).value;
+        const author = document.getElementById(`author-${id}`).value;
+        await fetch(`/blogs/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, author })
+        });
+        fetchBlogs();
+    }
+
+    fetchBlogs();
+</script>
 </body>
 </html>

@@ -1,21 +1,20 @@
 const mongoose = require('mongoose');
-const connect = mongoose.connect('mongodb://localhost:27017');
+const connect = mongoose.connect('mongodb://localhost:27017/test');
 
 connect.then(() => {
     console.log('Connected correctly to server');
 }).catch(() => console.log("Database connection error"));
 
-const LoginSchema = new mongoose.Schema({
-    name: {
+const BlogSchema = new mongoose.Schema({
+    title: {
         type: String,
         required: true
     },
-    password: {
+    author: {
         type: String,
         required: true
     }
 });
 
-const collection = mongoose.model('users', LoginSchema);
-
-module.exports = collection;
+const Blog = mongoose.model('blogs', BlogSchema);
+module.exports = Blog;
