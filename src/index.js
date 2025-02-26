@@ -2,7 +2,9 @@ const collection = require('./config');
 const Blog = require('./blog');
 const express = require('express');
 const path = require('path');
+const axios = require('axios');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(express.json());
@@ -60,7 +62,7 @@ app.post('/login', async (req, res) => {
         res.send("wrong details")
     };
 });
-
+//CRUD operations
 app.post('/blogs', async (req, res) => {
     const { title, author } = req.body;
     try {
@@ -111,7 +113,54 @@ app.put('/blogs/:id', async (req, res) => {
         res.status(500).send(err.message);
     }
 })
+//calculate BMI
+app.get('/calculator', (req, res) => {
+    res.render('calculator');
+});
+//email
+app.get('/email', (req, res) => {
+    res.render('email');
+});
+//Weather API
+const timeZoneApiUrl = 'http://api.timezonedb.com/v2.1/get-time-zone';
 
+const WEATHER_API_KEY = 'a983878d6fef354f029edc91f88d0567';
+const NEWS_API_KEY = '7eaf4e9b6f4b4489be4770e646870ae3';
+
+app.get('/weather', async (req, res) => {
+    res.render('weather');
+
+});
+app.get('/weather/:city', async (req, res) => {
+    const { city } = req.params;
+    if (!city) {
+        return res.status(400).json({ message: 'City is required' });
+    }
+    try {
+        const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
+            params: {
+                q: city,
+                appid: WEATHER_API_KEY,
+                units: 'metric'
+            },
+        });
+
+        const weatherData = weatherResponse.data;
+        const { country } = weatherData.sys; //dont know
+
+        res.json({
+            city: weatherData.name,
+            country: country,
+            temperature: weatherData.main.temp,
+            description: weatherData.weather[0].description,
+            feelsLike: weatherData.main.feels_like,
+            humidity: weatherData.main.humidity,
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error.message);
+        res.status(500).json({ message: 'Error fetching data', error: error.message });
+    }
+});
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
